@@ -14,7 +14,13 @@
                 <tr>
                     {% for cell in range(columns) %}
                         <td>
-                            <button class="cell closed row{{row}} column{{cell}}" onclick="processCell(event)""></button>
+                            <button
+                                class="cell closed"
+                                data-row="{{row}}"
+                                data-column="{{cell}}"
+                                onclick="processCellClick(event)"
+                                oncontextmenu="processCellRightClick(event)"
+                            ></button>
                         </td>
                     {% endfor %}
                 </tr>

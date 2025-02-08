@@ -10,16 +10,17 @@ function getGameSettings() {
     return { rows, columns, mines };
 };
 
-function processCell(event) {
+function processCellClick(event) {
     let cell = event.target;
-    let row = parseInt(cell.classList[2].replace("row", ""));
-    let column = parseInt(cell.classList[3].replace("column", ""));
+    let row = parseInt(cell.getAttribute("data-row"), 10);
+    let column = parseInt(cell.getAttribute("data-column"), 10);
     
     if (firstClick) {
         console.log("Starting the game...")
         let settings = getGameSettings();
 
         websocket.send(JSON.stringify({
+            type: "start",
             start: [row, column],
             mines: settings.mines,
             height: settings.rows,
@@ -27,17 +28,52 @@ function processCell(event) {
         }));
         firstClick = false;
     } else {
-        websocket.send(JSON.stringify([row, column]));
+        websocket.send(JSON.stringify({
+            type: "click",
+            cell: [row, column]
+        }));
     }
+};
+
+function processCellDoubleClick(event) {
+    console.log("Double click!");
+};
+
+function processCellRightClick(event) {
+    event.preventDefault();
+
+    if (!firstClick) {
+        let cell = event.target;
+        let row = parseInt(cell.getAttribute("data-row"), 10);
+        let column = parseInt(cell.getAttribute("data-column"), 10);
+
+        if (cell.classList.contains("closed")) {
+            websocket.send(JSON.stringify({
+                type: "flag",
+                cell: [row, column]
+            }));
+            cell.classList.remove("closed");
+            cell.classList.add("flag");
+        } else {
+            websocket.send(JSON.stringify({
+                type: "remove_flag",
+                cell: [row, column]
+            }));
+            cell.classList.remove("flag");
+            cell.classList.add("closed");
+        };
+    };
 };
 
 function updateClass(cells, cell_class) {
     cells.forEach(([row, column]) => {
-        let cell = document.querySelector(`.cell.closed.row${row}.column${column}`);
+        let cell = document.querySelector(`.cell.closed[data-row="${row}"][data-column="${column}"]`);
         if (cell) {
             cell.classList.remove("closed");
             cell.classList.add(cell_class);
             cell.disabled = true;
+            cell.removeAttribute("onclick");
+            cell.addEventListener("dblclick", processCellDoubleClick);
         }
     });
 };

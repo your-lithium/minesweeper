@@ -13,12 +13,19 @@ DIRECTIONS = [
 
 
 class FieldService():
-    def __init__(self, start: tuple[int, int], mines: int = 10, height: int = 9, width: int = 9):
+    def __init__(
+        self,
+        start: tuple[int, int],
+        mines: int = 10,
+        height: int = 9,
+        width: int = 9,
+    ) -> None:
         self.height = height
         self.width = width
         self.mines = []
         self.create_field(start, mines)
         self.opened = [start]
+        self.flagged = set()
 
     def create_field(self, start: tuple[int, int], mines: int) -> None:
         field_size = self.height * self.width
@@ -126,6 +133,13 @@ class FieldService():
             self.get_neighbouring_cells(neighbor, visited, collected)
 
         return collected
+    
+    def flag_cell(self, coordinates: tuple[int, int], remove_flag: bool = False) -> None:
+        if remove_flag:
+            self.flagged.discard(coordinates)
+        else:
+            self.flagged.add(coordinates)
+        logger.debug(f"Flagged cells are now: {self.flagged}")
             
 
 if __name__ == "__main__":
