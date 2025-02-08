@@ -82,7 +82,36 @@ class FieldService():
                     print(cell, end=" ")
             print()
     
-    def check_cell(self, coordinates: tuple[int, int]) -> str:
+    def check_neighbouring_cells(self, coordinates: tuple[int, int]) -> dict[str, str | dict[str, list[tuple[int, int]]]]:
+        neighbouring_cells = []
+        for change in DIRECTIONS:
+            row, column = coordinates[0] + change[0], coordinates[1] + change[1]
+            neighbour_coordinates = (row, column)
+            if neighbour_coordinates in self.mines or row < 0 or row >= self.height or column < 0 or column >= self.width:
+                continue
+            
+            logger.debug(f"Checking neighbouring cell: {neighbour_coordinates}")
+            neighbour = self.check_cell(neighbour_coordinates)
+            logger.debug(f"Neighbour cell checked: {neighbour}")
+            
+            if neighbour["status"] == "game_over":
+                return neighbour
+            neighbouring_cells.append(neighbour["cells"])
+        
+        merged_cells = {}
+        for d in neighbouring_cells:
+            for key, value in d.items():
+                if key in merged_cells:
+                    merged_cells[key] += value
+                else:
+                    merged_cells[key] = value
+        
+        return {
+            "status": "okay",
+            "cells": merged_cells
+        }            
+    
+    def check_cell(self, coordinates: tuple[int, int]) -> dict[str, str | dict[str, list[tuple[int, int]]]]:
         cell = self.field[coordinates[0]][coordinates[1]]
         if cell == 9:
             return {

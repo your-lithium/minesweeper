@@ -36,7 +36,14 @@ function processCellClick(event) {
 };
 
 function processCellDoubleClick(event) {
-    console.log("Double click!");
+    let cell = event.target;
+    let row = parseInt(cell.getAttribute("data-row"), 10);
+    let column = parseInt(cell.getAttribute("data-column"), 10);
+    
+    websocket.send(JSON.stringify({
+        type: "check_neighbours",
+        cell: [row, column]
+    }));
 };
 
 function processCellRightClick(event) {
@@ -71,7 +78,6 @@ function updateClass(cells, cell_class) {
         if (cell) {
             cell.classList.remove("closed");
             cell.classList.add(cell_class);
-            cell.disabled = true;
             cell.removeAttribute("onclick");
             cell.addEventListener("dblclick", processCellDoubleClick);
         }

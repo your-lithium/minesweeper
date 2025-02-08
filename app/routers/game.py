@@ -49,6 +49,11 @@ async def play(
                 elif request_type == "remove_flag":
                     logger.info(f"The user unflagged cell {request_cell}")
                     field_service.flag_cell(coordinates=request_cell, remove_flag=True)
+                elif request_type == "check_neighbours":
+                    logger.info(f"The user checked neighbours of cell {request_cell}")
+                    result = field_service.check_neighbouring_cells(coordinates=request_cell)
+                    logger.info(f"Sending the result: {result}")
+                    await websocket.send_json(result)
     except WebSocketDisconnect as e:
         logger.warning(f"WebSocket disconnected: {e}")
         return
