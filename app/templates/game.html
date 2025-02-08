@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Play!
+{% endblock %}
+
+{% block main %}
+    {% block body %}
+        <h1>Minesweeper</h1>
+
+        <h3>Play!</h3>
+        <table class="rows{{rows}} columns{{columns}} mines{{mines}}">
+            {% for row in range(rows) %}
+                <tr>
+                    {% for cell in range(columns) %}
+                        <td>
+                            <button class="cell closed row{{row}} column{{cell}}" onclick="processCell(event)""></button>
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    {% endblock %}
+{% endblock %}

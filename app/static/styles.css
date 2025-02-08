@@ -1,0 +1,81 @@
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+td {
+    padding: 0;
+    margin: 0;
+    border: none;
+}
+
+.cell {
+    height: 24px;
+    width: 24px;
+    display: block;
+    padding: 0;
+    margin: 0;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: none;
+    box-shadow: none;
+    outline: none;
+    background-color: transparent;
+}
+
+.closed {
+    background-image: url('buttons/closed.png');
+}
+
+.open1 {
+    background-image: url('buttons/1.png');
+}
+
+.open2 {
+    background-image: url('buttons/2.png');
+}
+
+.open3 {
+    background-image: url('buttons/3.png');
+}
+
+.open4 {
+    background-image: url('buttons/4.png');
+}
+
+.open5 {
+    background-image: url('buttons/5.png');
+}
+
+.open6 {
+    background-image: url('buttons/6.png');
+}
+
+.open7 {
+    background-image: url('buttons/7.png');
+}
+
+.open8 {
+    background-image: url('buttons/8.png');
+}
+
+.empty {
+    background-image: url('buttons/empty.png');
+}
+
+.oops {
+    background-image: url('buttons/oops.png');
+}
+
+.mine {
+    background-image: url('buttons/mine.png');
+}
+
+.flag {
+    background-image: url('buttons/flag.png');
+}
+
+/* h1 {
+    color: #ff00dd;
+} */
