@@ -79,7 +79,12 @@ function updateClass(cells, cell_class) {
             cell.classList.remove("closed");
             cell.classList.add(cell_class);
             cell.removeAttribute("onclick");
-            cell.addEventListener("dblclick", processCellDoubleClick);
+            cell.removeAttribute("oncontextmenu");
+            if (cell_class !== "empty") {
+                cell.addEventListener("dblclick", processCellDoubleClick);
+            } else {
+                cell.disabled = true;
+            }
         }
     });
 };
