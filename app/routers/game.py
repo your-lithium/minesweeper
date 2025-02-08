@@ -3,7 +3,6 @@ from starlette.websockets import WebSocket, WebSocketDisconnect
 from loguru import logger
 
 from app.services import FieldService
-from app.core import jinja2_templates
 
 
 game_router = APIRouter(
@@ -31,7 +30,7 @@ async def play(
             )
             
             result = field_service.check_cell(coordinates=start)
-            await websocket.send_text(result)
+            await websocket.send_json(result)
             logger.info(f"Game started with a first click at {request_body['start']}")
             
             while True:
@@ -43,7 +42,7 @@ async def play(
                     logger.info(f"The user chose cell {request_cell}")
                     result = field_service.check_cell(coordinates=request_cell)
                     logger.info(f"Sending the result: {result}")
-                    await websocket.send_text(result)
+                    await websocket.send_json(result)
                 elif request_type == "flag":
                     logger.info(f"The user flagged cell {request_cell}")
                     field_service.flag_cell(coordinates=request_cell)

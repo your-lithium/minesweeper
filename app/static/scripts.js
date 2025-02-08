@@ -54,7 +54,7 @@ function processCellRightClick(event) {
             }));
             cell.classList.remove("closed");
             cell.classList.add("flag");
-        } else {
+        } else if (cell.classList.contains("flag")) {
             websocket.send(JSON.stringify({
                 type: "remove_flag",
                 cell: [row, column]

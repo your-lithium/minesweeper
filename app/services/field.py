@@ -22,9 +22,9 @@ class FieldService():
     ) -> None:
         self.height = height
         self.width = width
-        self.mines = []
+        self.mines = set()
         self.create_field(start, mines)
-        self.opened = [start]
+        self.opened = {start}
         self.flagged = set()
 
     def create_field(self, start: tuple[int, int], mines: int) -> None:
@@ -42,7 +42,7 @@ class FieldService():
             row = i // self.height
             column = i % self.width
             if cell == 9:
-                self.mines.append((row, column))
+                self.mines.add((row, column))
                 continue
             
             mine_count = 0
@@ -85,28 +85,36 @@ class FieldService():
     def check_cell(self, coordinates: tuple[int, int]) -> str:
         cell = self.field[coordinates[0]][coordinates[1]]
         if cell == 9:
-            return json.dumps({
+            return {
                 "status": "game_over",
                 "cells": {
                     "oops": [coordinates],
-                    "mine": self.mines
+                    "mine": list(self.mines)
                 }
-            })
+            }
         
         if cell > 0:
-            return json.dumps({
+            self.opened.add(coordinates)
+            return {
                 "status": "okay",
                 "cells": {
                     f"open{cell}": [coordinates],
                 }
-            })
+            }
         
-        return json.dumps({
+        opened_area = self.get_neighbouring_cells(coordinates)
+        self.opened.update(coordinates for cell_type in opened_area.values() for coordinates in cell_type)
+        return {
                 "status": "okay",
-                "cells": self.get_neighbouring_cells(coordinates)
-            })
+                "cells": opened_area
+            }
 
-    def get_neighbouring_cells(self, coordinates: tuple[int, int], visited: set | None = None, collected: dict[str, list[tuple[int, int]]] | None = None) -> dict[str, list[tuple[int, int]]]:
+    def get_neighbouring_cells(
+        self,
+        coordinates: tuple[int, int],
+        visited: set | None = None,
+        collected: dict[str, list[tuple[int, int]]] | None = None
+    ) -> dict[str, list[tuple[int, int]]]:
         if visited is None:
             visited = set()
         if collected is None:
