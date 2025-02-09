@@ -61,6 +61,7 @@ function processCellRightClick(event) {
             }));
             cell.classList.remove("closed");
             cell.classList.add("flag");
+            cell.removeAttribute("onclick");
         } else if (cell.classList.contains("flag")) {
             websocket.send(JSON.stringify({
                 type: "remove_flag",
@@ -68,6 +69,7 @@ function processCellRightClick(event) {
             }));
             cell.classList.remove("flag");
             cell.classList.add("closed");
+            cell.setAttribute("onclick", "processCellClick(event)");
         };
     };
 };
