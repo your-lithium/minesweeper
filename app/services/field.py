@@ -1,9 +1,6 @@
-import json
 import random
 
 from collections import defaultdict
-
-from loguru import logger
 
 
 DIRECTIONS = [
@@ -93,10 +90,7 @@ class FieldService():
             if neighbour_coordinates in self.mines or row < 0 or row >= self.height or column < 0 or column >= self.width:
                 continue
             
-            logger.debug(f"Checking neighbouring cell: {neighbour_coordinates}")
             neighbour = self.check_cell(neighbour_coordinates)
-            logger.debug(f"Neighbour cell checked: {neighbour}")
-            
             if neighbour["status"] == "game_over":
                 return neighbour
             neighbouring_cells.append(neighbour["cells"])
@@ -179,7 +173,6 @@ class FieldService():
             self.flagged.discard(coordinates)
         else:
             self.flagged.add(coordinates)
-        logger.debug(f"Flagged cells are now: {self.flagged}")
     
     def check_win(self) -> bool:
         if len(self.mines) + len(self.opened) == self.width * self.height and self.mines.isdisjoint(self.opened):
