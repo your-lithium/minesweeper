@@ -54,6 +54,9 @@ async def play(
                     result = field_service.check_neighbouring_cells(coordinates=request_cell)
                     logger.info(f"Sending the result: {result}")
                     await websocket.send_json(result)
+                
+                if field_service.check_win():
+                    await websocket.send_json({"status": "win"})
     except WebSocketDisconnect as e:
         logger.warning(f"WebSocket disconnected: {e}")
         return

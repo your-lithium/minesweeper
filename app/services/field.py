@@ -22,8 +22,11 @@ class FieldService():
     ) -> None:
         self.height = height
         self.width = width
+        
         self.mines = set()
+        self.field = []
         self.create_field(start, mines)
+        
         self.opened = {start}
         self.flagged = set()
 
@@ -177,6 +180,11 @@ class FieldService():
         else:
             self.flagged.add(coordinates)
         logger.debug(f"Flagged cells are now: {self.flagged}")
+    
+    def check_win(self) -> bool:
+        if len(self.mines) + len(self.opened) == self.width * self.height and self.mines.isdisjoint(self.opened):
+            return True
+        return False
             
 
 if __name__ == "__main__":

@@ -105,6 +105,9 @@ websocket.onmessage = function(event) {
         updateBoard(message.cells);
         alert("Game Over!");
         websocket.close(1000, "Game Over");
+    } else if (message.status === "win") {
+        alert("You won!");
+        websocket.close(1000, "Game Won");
     } else {
         updateBoard(message.cells);
     }
