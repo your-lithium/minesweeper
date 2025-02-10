@@ -1,12 +1,12 @@
-import uvicorn
 import logging
 
+import uvicorn
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
-from app.routers import health_router, game_router, main_router
 from app.core import settings
+from app.routers import game_router, health_router, main_router
 
 logging.basicConfig()
 

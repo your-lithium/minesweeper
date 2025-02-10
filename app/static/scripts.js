@@ -75,7 +75,7 @@ function processCellRightClick(event) {
 };
 
 function updateClass(cells, cell_class) {
-    cells.forEach(([row, column]) => {
+    cells.forEach(({ row, column }) => {
         let cell = document.querySelector(`.cell.closed[data-row="${row}"][data-column="${column}"]`);
         if (cell) {
             cell.classList.remove("closed");

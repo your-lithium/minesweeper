@@ -1,9 +1,9 @@
 from fastapi import APIRouter
-from starlette.websockets import WebSocket, WebSocketDisconnect
 from loguru import logger
+from starlette.websockets import WebSocket, WebSocketDisconnect
 
+from app.schemas import Cell
 from app.services import FieldService
-
 
 game_router = APIRouter(
     prefix="/ws/play",
@@ -18,26 +18,23 @@ async def play(
     try:
         await websocket.accept()
         logger.info("Starting a game...")
-        
+
         request_body = await websocket.receive_json()
         if request_body["type"] == "start":
-            start = tuple(request_body["start"])
+            start = Cell.from_sequence(request_body["start"])
             field_service = FieldService(
-                start=start,
-                mines=request_body["mines"],
-                height=request_body["height"],
-                width=request_body["width"]
+                start=start, n_mines=request_body["mines"], height=request_body["height"], width=request_body["width"]
             )
-            
+
             result = field_service.check_cell(coordinates=start)
             await websocket.send_json(result)
             logger.info(f"Game started with a first click at {request_body['start']}")
-            
+
             while True:
                 request_body = await websocket.receive_json()
                 request_type = request_body["type"]
-                request_cell = tuple(request_body['cell'])
-                
+                request_cell = Cell.from_sequence(request_body["cell"])
+
                 if request_type == "click":
                     logger.info(f"The user chose cell {request_cell}")
                     result = field_service.check_cell(coordinates=request_cell)
@@ -54,7 +51,7 @@ async def play(
                     result = field_service.check_neighbouring_cells(coordinates=request_cell)
                     logger.info(f"Sending the result: {result}")
                     await websocket.send_json(result)
-                
+
                 if field_service.check_win():
                     await websocket.send_json({"status": "win"})
     except WebSocketDisconnect as e:
