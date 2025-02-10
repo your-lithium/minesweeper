@@ -1,5 +1,6 @@
 import random
 from collections import defaultdict
+from typing import Generator
 
 from app.schemas import Cell, CellCollection, GameResponse
 
@@ -40,6 +41,18 @@ class FieldService:
     def calculate_flat_index(self, cell: Cell) -> int:
         return cell.row * self.width + cell.column
 
+    def get_cell_neighbours(self, cell: Cell) -> Generator[Cell, None, None]:
+        for change in DIRECTIONS:
+            neighbour_cell = cell.add(change)
+            if (
+                neighbour_cell.row < 0
+                or neighbour_cell.row >= self.height
+                or neighbour_cell.column < 0
+                or neighbour_cell.column >= self.width
+            ):
+                continue
+            yield neighbour_cell
+
     def create_field(self, start: Cell, n_mines: int) -> None:
         field_size = self.height * self.width
         if n_mines >= field_size:
@@ -58,15 +71,8 @@ class FieldService:
                 continue
 
             neighbour_mine_count = 0
-            for change in DIRECTIONS:
-                neighbour = Cell(row=row + change[0], column=column + change[1])
-                if (
-                    neighbour.row < 0
-                    or neighbour.row >= self.height
-                    or neighbour.column < 0
-                    or neighbour.column >= self.width
-                ):
-                    continue
+            cell = Cell(row=row, column=column)
+            for neighbour in self.get_cell_neighbours(cell=cell):
                 if flat_field[self.calculate_flat_index(neighbour)] == 9:
                     neighbour_mine_count += 1
             flat_field[i] = neighbour_mine_count
@@ -76,16 +82,7 @@ class FieldService:
     def calculate_forbidden_mine_positions(self, start: Cell) -> list[int]:
         forbidden_mine_positions = [self.calculate_flat_index(start)]
 
-        for change in DIRECTIONS:
-            neighbour = Cell(row=start.row + change[0], column=start.column + change[1])
-            if (
-                neighbour.row < 0
-                or neighbour.row >= self.height
-                or neighbour.column < 0
-                or neighbour.column >= self.width
-            ):
-                continue
-
+        for neighbour in self.get_cell_neighbours(cell=start):
             forbidden_mine_positions.append(self.calculate_flat_index(cell=neighbour))
 
         return forbidden_mine_positions
@@ -112,15 +109,8 @@ class FieldService:
 
     def check_neighbouring_cells(self, cell: Cell) -> GameResponse:
         neighbouring_cells = []
-        for change in DIRECTIONS:
-            neighbour = Cell(row=cell.row + change[0], column=cell.column + change[1])
-            if (
-                neighbour in self.flagged
-                or neighbour.row < 0
-                or neighbour.row >= self.height
-                or neighbour.column < 0
-                or neighbour.column >= self.width
-            ):
+        for neighbour in self.get_cell_neighbours(cell=cell):
+            if neighbour in self.flagged:
                 continue
 
             neighbour_check = self.check_cell(cell=neighbour)
@@ -153,9 +143,6 @@ class FieldService:
         if cell in visited:
             return collected
 
-        if cell.row < 0 or cell.row >= self.height or cell.column < 0 or cell.column >= self.width:
-            return collected
-
         visited.add(cell)
 
         cell_value = self.field[cell.row][cell.column]
@@ -165,8 +152,7 @@ class FieldService:
 
         collected["empty"].append(cell)
 
-        for change in DIRECTIONS:
-            neighbour = Cell(row=cell.row + change[0], column=cell.column + change[1])
+        for neighbour in self.get_cell_neighbours(cell=cell):
             self.get_neighbouring_cells(cell=neighbour, visited=visited, collected=collected)
 
         return collected
