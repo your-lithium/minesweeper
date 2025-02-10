@@ -20,7 +20,19 @@ class Cell(BaseModel):
 
 
 class CellCollection(RootModel):
-    root: dict[str, list[Cell]]
+    root: dict[str, list[Cell]] = {}
+
+    @property
+    def cells(self) -> list[Cell]:
+        return [cell for cell_type in self.root.values() for cell in cell_type]
+
+    def __getitem__(self, key: str) -> list[Cell]:
+        if key not in self.root:
+            self.root[key] = []
+        return self.root[key]
+
+    def __setitem__(self, key: str, value: list[Cell]):
+        self.root[key] = value
 
 
 class GameResponse(BaseModel):

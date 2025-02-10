@@ -1,5 +1,4 @@
 import random
-from collections import defaultdict
 from typing import Generator
 
 from app.schemas import Cell, CellCollection, GameResponse
@@ -101,9 +100,10 @@ class FieldService:
                 },
             )
         else:
-            opened_area = self.get_neighbouring_cells(cell)
-            self.opened.update(coordinates for cell_type in opened_area.values() for coordinates in cell_type)
-            response = GameResponse(status="okay", cells=opened_area)
+            opened_area = self.flood_neighbouring_cells(cell)
+            if opened_area:
+                self.opened.update(opened_area.cells)
+                response = GameResponse(status="okay", cells=opened_area)
 
         return response.model_dump()
 
@@ -129,31 +129,31 @@ class FieldService:
         result = GameResponse(status="okay", cells=merged_opened_cells)
         return result.model_dump()
 
-    def get_neighbouring_cells(
+    def flood_neighbouring_cells(
         self,
         cell: Cell,
         visited: set[Cell] | None = None,
-        collected: CellCollection | defaultdict[str, list[Cell]] | None = None,
-    ) -> CellCollection | defaultdict[str, list[Cell]]:
+        collected: CellCollection | None = None,
+    ) -> CellCollection | None:
         if visited is None:
             visited = set()
         if collected is None:
-            collected = defaultdict(list)
+            collected = CellCollection()
 
         if cell in visited:
-            return collected
+            return None
 
         visited.add(cell)
 
         cell_value = self.field[cell.row][cell.column]
         if cell_value > 0:
             collected[f"open{cell_value}"].append(cell)
-            return collected
+            return None
 
         collected["empty"].append(cell)
 
         for neighbour in self.get_cell_neighbours(cell=cell):
-            self.get_neighbouring_cells(cell=neighbour, visited=visited, collected=collected)
+            self.flood_neighbouring_cells(cell=neighbour, visited=visited, collected=collected)
 
         return collected
 
