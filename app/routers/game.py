@@ -26,7 +26,7 @@ async def play(
                 start=start, n_mines=request_body["mines"], height=request_body["height"], width=request_body["width"]
             )
 
-            result = field_service.check_cell(coordinates=start)
+            result = field_service.check_cell(cell=start)
             await websocket.send_json(result)
             logger.info(f"Game started with a first click at {request_body['start']}")
 
@@ -37,18 +37,18 @@ async def play(
 
                 if request_type == "click":
                     logger.info(f"The user chose cell {request_cell}")
-                    result = field_service.check_cell(coordinates=request_cell)
+                    result = field_service.check_cell(cell=request_cell)
                     logger.info(f"Sending the result: {result}")
                     await websocket.send_json(result)
                 elif request_type == "flag":
                     logger.info(f"The user flagged cell {request_cell}")
-                    field_service.flag_cell(coordinates=request_cell)
+                    field_service.flag_cell(cell=request_cell)
                 elif request_type == "remove_flag":
                     logger.info(f"The user unflagged cell {request_cell}")
-                    field_service.flag_cell(coordinates=request_cell, remove_flag=True)
+                    field_service.flag_cell(cell=request_cell, remove_flag=True)
                 elif request_type == "check_neighbours":
                     logger.info(f"The user checked neighbours of cell {request_cell}")
-                    result = field_service.check_neighbouring_cells(coordinates=request_cell)
+                    result = field_service.check_neighbouring_cells(cell=request_cell)
                     logger.info(f"Sending the result: {result}")
                     await websocket.send_json(result)
 
