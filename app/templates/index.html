@@ -6,14 +6,24 @@
 
 {% block main %}
     {% block body %}
-        <h1>Minesweeper</h1>
-
-        <h3>Choose your game</h3>
-        <form action="/create" method="get">
-            <input class="btn btn-primary" type="submit" name="mode" value="Small: 9×9, 10 mines">
-            <input class="btn btn-primary" type="submit" name="mode" value="Medium: 16×16, 40 mines">
-            <input class="btn btn-primary" type="submit" name="mode" value="Hard: 30×16, 99 mines">
-            <input class="btn btn-primary" type="submit" name="mode" value="Extreme: 24×30, 160 mines">
-        </form>
+    <div class="wrapper">
+        <div class="header">
+            <h1>Minesweeper</h1>
+        </div>
+        
+        <div class="section">
+            <div class="header">
+                <h3>Choose your game</h3>
+            </div>
+            <div class="container">
+                <form action="/create" method="get">
+                    <input class="btn btn-primary minesweeper-button" type="submit" name="mode" value="Small: 9×9, 10 mines">
+                    <input class="btn btn-primary minesweeper-button" type="submit" name="mode" value="Medium: 16×16, 40 mines">
+                    <input class="btn btn-primary minesweeper-button" type="submit" name="mode" value="Hard: 30×16, 99 mines">
+                    <input class="btn btn-primary minesweeper-button" type="submit" name="mode" value="Extreme: 24×30, 160 mines">
+                </form>
+            </div>
+        </div>
+    </div>
     {% endblock %}
 {% endblock %}

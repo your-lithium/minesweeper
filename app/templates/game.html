@@ -6,25 +6,36 @@
 
 {% block main %}
     {% block body %}
-        <h1>Minesweeper</h1>
-
-        <h3>Play!</h3>
-        <table class="rows{{rows}} columns{{columns}} mines{{mines}}">
-            {% for row in range(rows) %}
-                <tr>
-                    {% for cell in range(columns) %}
-                        <td>
-                            <button
-                                class="cell closed"
-                                data-row="{{row}}"
-                                data-column="{{cell}}"
-                                onclick="processCellClick(event)"
-                                oncontextmenu="processCellRightClick(event)"
-                            ></button>
-                        </td>
+    <div class="wrapper">
+        <div class="header">
+            <h1>Minesweeper</h1>
+        </div>
+        
+        <div class="section">
+            <div class="header">
+                <h3>Play!</h3>
+            </div>
+            
+            <div class="container">
+                <table class="rows{{rows}} columns{{columns}} mines{{mines}}">
+                    {% for row in range(rows) %}
+                        <tr>
+                            {% for cell in range(columns) %}
+                                <td>
+                                    <button
+                                        class="cell closed"
+                                        data-row="{{row}}"
+                                        data-column="{{cell}}"
+                                        onclick="processCellClick(event)"
+                                        oncontextmenu="processCellRightClick(event)"
+                                    ></button>
+                                </td>
+                            {% endfor %}
+                        </tr>
                     {% endfor %}
-                </tr>
-            {% endfor %}
-        </table>
+                </table>
+            </div>
+        </div>
+    </div>
     {% endblock %}
 {% endblock %}

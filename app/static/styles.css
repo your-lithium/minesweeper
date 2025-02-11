@@ -1,3 +1,86 @@
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.header {
+    top: 0;
+    z-index: 10;
+    width: 100%;
+    padding: 10px 0;
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+h1, h3 {
+    font-family: 'Tiny5';
+}
+
+.minesweeper-button, .minesweeper-button:hover {
+    font-family: 'Tiny5', cursive;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: black;
+    background-color: #d4d4d4;
+    border: 2px solid #bcbcbc;
+    border-right-color: #eaeaea;
+    border-bottom-color: #eaeaea;
+    padding: 5px 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    min-width: 100px;
+    text-align: center;
+    border-radius: 0;
+    outline: none;
+}
+
+.minesweeper-button:active, 
+.minesweeper-button:focus {
+    font-family: 'Tiny5', cursive;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: black !important;
+    background-color: #d4d4d4 !important;
+    border: 2px solid #eaeaea !important;
+    border-right-color: #bcbcbc !important;
+    border-bottom-color: #bcbcbc !important;
+    padding: 5px 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    min-width: 100px;
+    text-align: center;
+    border-radius: 0;
+    box-shadow: none !important;
+}
+
+.minesweeper-button:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
 table {
     border-collapse: collapse;
     border-spacing: 0;
@@ -75,7 +158,3 @@ td {
 .flag {
     background-image: url('buttons/flag.png');
 }
-
-/* h1 {
-    color: #ff00dd;
-} */
