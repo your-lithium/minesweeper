@@ -63,7 +63,7 @@ class FieldService:
 
         flat_field = [9 if i in mine_positions else 0 for i in range(field_size)]
         for i, cell_value in enumerate(flat_field):
-            row = i // self.height
+            row = i // self.width
             column = i % self.width
             if cell_value == 9:
                 self.mines.add(Cell(row=row, column=column))
