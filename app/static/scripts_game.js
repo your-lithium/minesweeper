@@ -1,5 +1,6 @@
 const websocket = new WebSocket("ws://localhost:8000/ws/play/");
 let firstClick = true;
+let remainingMines = 0;
 
 function getGameSettings() {
     let table = document.querySelector("table");
@@ -7,8 +8,15 @@ function getGameSettings() {
     let columns = parseInt(table.classList.value.match(/columns(\d+)/)[1]);
     let mines = parseInt(table.classList.value.match(/mines(\d+)/)[1]);
 
+    remainingMines = mines;
+    updateMineCounter();
+
     return { rows, columns, mines };
 };
+
+function updateMineCounter() {
+    document.getElementById("remaining-mines").textContent = remainingMines;
+}
 
 function processCellClick(event) {
     let cell = event.target;
@@ -18,6 +26,9 @@ function processCellClick(event) {
     if (firstClick) {
         console.log("Starting the game...")
         let settings = getGameSettings();
+        
+        remainingMines = settings.mines;
+        updateMineCounter();
 
         websocket.send(JSON.stringify({
             type: "start",
@@ -62,6 +73,8 @@ function processCellRightClick(event) {
             cell.classList.remove("closed");
             cell.classList.add("flag");
             cell.removeAttribute("onclick");
+
+            remainingMines--;
         } else if (cell.classList.contains("flag")) {
             websocket.send(JSON.stringify({
                 type: "remove_flag",
@@ -70,8 +83,11 @@ function processCellRightClick(event) {
             cell.classList.remove("flag");
             cell.classList.add("closed");
             cell.setAttribute("onclick", "processCellClick(event)");
-        };
-    };
+
+            remainingMines++;
+        }
+        updateMineCounter();
+    }
 };
 
 function updateClass(cells, cell_class) {
@@ -95,6 +111,10 @@ function updateBoard(cells) {
         updateClass(cellList, cellClass);
     });
 };
+
+document.addEventListener("DOMContentLoaded", () => {
+    getGameSettings();
+});
 
 websocket.onmessage = function(event) {
     let message = JSON.parse(event.data);
