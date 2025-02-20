@@ -1,0 +1,19 @@
+services:
+    primary:
+        container_name: app
+        build: 
+            context: .
+            dockerfile: Dockerfile
+        restart: always
+        env_file:
+            - .env
+        ports:
+            - ${PORT}:${PORT}
+        volumes:
+            - .:/app
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:${PORT}"]
+            interval: 30s
+            timeout: 10s
+            retries: 5
+            start_period: 10s
