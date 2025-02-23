@@ -1,4 +1,4 @@
-const websocket = new WebSocket("ws://localhost:8000/ws/play/");
+const websocket = new WebSocket(`ws://${window.location.host}/ws/play/`);
 let firstClick = true;
 let remainingMines = 0;
 
