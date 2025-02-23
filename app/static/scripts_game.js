@@ -119,15 +119,17 @@ document.addEventListener("DOMContentLoaded", () => {
 websocket.onmessage = function(event) {
     let message = JSON.parse(event.data);
     console.log("Received result", message);
-    
-    if (message.status === "game_over") {
-        updateBoard(message.cells);
-        alert("Game Over!");
-        websocket.close(1000, "Game Over");
-    } else if (message.status === "win") {
-        alert("You won!");
-        websocket.close(1000, "Game Won");
-    } else {
-        updateBoard(message.cells);
+
+    if (message !== null) {
+        if (message.status === "game_over") {
+            updateBoard(message.cells);
+            alert("Game Over!");
+            websocket.close(1000, "Game Over");
+        } else if (message.status === "win") {
+            alert("You won!");
+            websocket.close(1000, "Game Won");
+        } else {
+            updateBoard(message.cells);
+        }
     }
 };

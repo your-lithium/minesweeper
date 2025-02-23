@@ -107,16 +107,26 @@ class FieldService:
 
         return response.model_dump()
 
-    def check_neighbouring_cells(self, cell: Cell) -> GameResponse:
+    def check_neighbouring_cells(self, cell: Cell) -> GameResponse | None:
+        cell_value = self.field[cell.row][cell.column]
+        flagged_neighbours = 0
         neighbouring_cells = []
+        failed_neighbour_check = None
+
         for neighbour in self.get_cell_neighbours(cell=cell):
             if neighbour in self.flagged:
+                flagged_neighbours += 1
                 continue
 
             neighbour_check = self.check_cell(cell=neighbour)
-            if neighbour_check["status"] == "game_over":
-                return neighbour_check
+            if neighbour_check["status"] == "game_over" and not failed_neighbour_check:
+                failed_neighbour_check = neighbour_check
             neighbouring_cells.append(neighbour_check["cells"])
+
+        if flagged_neighbours < cell_value:
+            return None
+        elif failed_neighbour_check:
+            return failed_neighbour_check
 
         merged_opened_cells: CellCollection | dict[str, list[Cell]] = {}
         for d in neighbouring_cells:
