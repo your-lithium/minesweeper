@@ -59,7 +59,7 @@ class FieldService:
 
         forbidden_mine_positions = self.calculate_forbidden_mine_positions(start)
         potential_mine_positions = list(set(range(field_size)) - set(forbidden_mine_positions))
-        mine_positions = random.choices(potential_mine_positions, k=n_mines)
+        mine_positions = random.sample(potential_mine_positions, k=n_mines)
 
         flat_field = [9 if i in mine_positions else 0 for i in range(field_size)]
         for i, cell_value in enumerate(flat_field):
