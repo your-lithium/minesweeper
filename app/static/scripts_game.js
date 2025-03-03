@@ -1,4 +1,5 @@
-const websocket = new WebSocket(`ws://${window.location.host}/ws/play/`);
+const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+const websocket = new WebSocket(`${protocol}${window.location.host}/ws/play/`);
 let firstClick = true;
 let remainingMines = 0;
 
