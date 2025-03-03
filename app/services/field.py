@@ -54,8 +54,10 @@ class FieldService:
 
     def create_field(self, start: Cell, n_mines: int) -> None:
         field_size = self.height * self.width
-        if n_mines >= field_size:
-            raise ValueError("There can't be as many mines as cells in a game")
+        if n_mines > field_size * 0.35:
+            raise ValueError("There should be at most 35% mined cells. Try to go for 20%, it's ideal.")
+        elif n_mines < field_size * 0.1:
+            raise ValueError("There should be at least 10% mined cells. Try to go for 20%, it's ideal.")
 
         forbidden_mine_positions = self.calculate_forbidden_mine_positions(start)
         potential_mine_positions = list(set(range(field_size)) - set(forbidden_mine_positions))

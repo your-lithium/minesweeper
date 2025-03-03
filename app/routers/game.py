@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from loguru import logger
 from starlette.websockets import WebSocket, WebSocketDisconnect
 
-from app.schemas import Cell
+from app.schemas import Cell, GameResponse
 from app.services import FieldService
 
 game_router = APIRouter(
@@ -15,10 +15,9 @@ game_router = APIRouter(
 async def play(
     websocket: WebSocket,
 ) -> None:
+    await websocket.accept()
+    logger.info("Starting a game...")
     try:
-        await websocket.accept()
-        logger.info("Starting a game...")
-
         request_body = await websocket.receive_json()
         if request_body["type"] == "start":
             start = Cell.from_sequence(request_body["start"])
@@ -26,7 +25,7 @@ async def play(
                 start=start, n_mines=request_body["mines"], height=request_body["height"], width=request_body["width"]
             )
 
-            result = field_service.check_cell(cell=start)
+            result: GameResponse | None = field_service.check_cell(cell=start)
             await websocket.send_json(result)
             logger.info(f"Game started with a first click at {request_body['start']}")
 
@@ -54,6 +53,11 @@ async def play(
 
                 if field_service.check_win():
                     await websocket.send_json({"status": "win"})
-    except WebSocketDisconnect as e:
-        logger.warning(f"WebSocket disconnected: {e}")
+    except WebSocketDisconnect as wsde:
+        logger.warning(f"WebSocket disconnected: {wsde}")
+        return
+    except ValueError as ve:
+        logger.warning(f"ValueError: {ve}")
+        await websocket.send_json({"error": str(ve), "status_code": 400})
+        await websocket.close()
         return

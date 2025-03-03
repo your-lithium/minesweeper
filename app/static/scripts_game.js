@@ -122,7 +122,11 @@ websocket.onmessage = function(event) {
     console.log("Received result", message);
 
     if (message !== null) {
-        if (message.status === "game_over") {
+        if (message.error) {
+            console.error("Error:", message.error);
+            alert(`Error: ${message.error}`);
+            websocket.close();
+        } else if (message.status === "game_over") {
             updateBoard(message.cells);
             alert("Game Over!");
             websocket.close(1000, "Game Over");
