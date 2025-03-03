@@ -20,7 +20,7 @@
                 <h3>Choose your game</h3>
             </div>
             <div class="container">
-                <form action="/create" method="get">
+                <form id="default" action="/create" method="get">
                     <input class="btn btn-primary minesweeper-button" type="submit" name="mode" value="Small: 9×9, 10 mines">
                     <input class="btn btn-primary minesweeper-button" type="submit" name="mode" value="Medium: 16×16, 40 mines">
                     <input class="btn btn-primary minesweeper-button" type="submit" name="mode" value="Hard: 30×16, 99 mines">
@@ -34,7 +34,7 @@
                 <h3>Or create your own setup</h3>
             </div>
             <div class="container">
-                <form action="/create" method="get">
+                <form id="custom" action="/create" method="get">
                     <div class="mb-2">
                         <label for="rows">Height (Rows): </label>
                         <input type="range" id="rows" name="rows" min="5" max="30" value="10">

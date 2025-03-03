@@ -17,3 +17,18 @@ document.getElementById('columnsNumber').addEventListener('input', function() {
 document.getElementById('minesNumber').addEventListener('input', function() {
     document.getElementById('mines').value = this.value;
 });
+
+document.getElementById('custom').addEventListener('submit', function(event) {
+    const rows = parseInt(document.getElementById('rows').value);
+    const columns = parseInt(document.getElementById('columns').value);
+    const mines = parseInt(document.getElementById('mines').value);
+
+    const totalCells = rows * columns;
+    const minMines = Math.floor(totalCells * 0.1);
+    const maxMines = Math.floor(totalCells * 0.35);
+
+    if (mines < minMines || mines > maxMines) {
+        event.preventDefault();
+        alert(`The number of mines must be between ${minMines}% and ${maxMines}%.`);
+    }
+});

@@ -126,6 +126,7 @@ websocket.onmessage = function(event) {
             console.error("Error:", message.error);
             alert(`Error: ${message.error}`);
             websocket.close();
+            window.location.href = "/";
         } else if (message.status === "game_over") {
             updateBoard(message.cells);
             alert("Game Over!");
