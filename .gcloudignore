@@ -1,0 +1,11 @@
+__pycache__/
+venv/
+.idea/
+.DS_Store
+.mypy_cache/
+.gitignore
+requirements.dev.txt
+README.md
+.env.sample
+compose.yaml
+.pre-commit-config.yaml
