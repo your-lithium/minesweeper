@@ -72,14 +72,13 @@ class FieldService:
         """
         for change in DIRECTIONS:
             neighbour_cell = cell.add(change)
-            if (
+            if not (
                 neighbour_cell.row < 0
                 or neighbour_cell.row >= self.height
                 or neighbour_cell.column < 0
                 or neighbour_cell.column >= self.width
             ):
-                continue
-            yield neighbour_cell
+                yield neighbour_cell
 
     def create_field(self, start: Cell, n_mines: int) -> None:
         """Creates the field — operates on the assumption the starting cell has no mines in or around it.
@@ -208,7 +207,6 @@ class FieldService:
     def flood_neighbouring_cells(
         self,
         cell: Cell,
-        visited: set[Cell] | None = None,
         collected: CellCollection | None = None,
     ) -> CellCollection | None:
         """Performs a recursive flood fill check of the cells, starting from one of them.
@@ -216,11 +214,8 @@ class FieldService:
 
         Args:
             cell (Cell): The cell to check. On the first run, always empty.
-            visited (set[Cell] | None, optional):
-                The cells already visited, that shouldn't be checked again.
-                Defaults to None on the first run.
             collected (CellCollection | None, optional):
-                The cells collected, with their corresponding valued.
+                The cells collected, with their corresponding values.
                 Defaults to None on the first run.
 
         Returns:
@@ -228,15 +223,11 @@ class FieldService:
                 The resulting cell collection, if all cells have been visited.
                 None, if there are still potentially cells to check.
         """
-        if visited is None:
-            visited = set()
         if collected is None:
             collected = CellCollection()
 
-        if cell in visited:
+        if cell in collected.cells:
             return None
-
-        visited.add(cell)
 
         cell_value = self.field[cell.row][cell.column]
         if cell_value > 0:
@@ -246,7 +237,7 @@ class FieldService:
         collected["empty"].append(cell)
 
         for neighbour in self.get_cell_neighbours(cell=cell):
-            self.flood_neighbouring_cells(cell=neighbour, visited=visited, collected=collected)
+            self.flood_neighbouring_cells(cell=neighbour, collected=collected)
 
         return collected
 
