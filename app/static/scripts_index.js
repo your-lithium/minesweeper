@@ -29,6 +29,6 @@ document.getElementById('custom').addEventListener('submit', function(event) {
 
     if (mines < minMines || mines > maxMines) {
         event.preventDefault();
-        alert(`The number of mines must be between ${minMines}% and ${maxMines}%.`);
+        alert(`The number of mines must be between ${minMines} and ${maxMines}.`);
     }
 });
