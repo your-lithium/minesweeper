@@ -48,14 +48,14 @@ Determines Pydantic schemas (custom data types) needed in the game, with their s
 ### `/services/field.py`
 Implements the main functionality needed for the game. All functions have docstrings that explain them in detail.
 
-The most interesting function, for me, is `flood_neighbouring_cells`. It implements a recursive flood-fill algorithm that was very interesting to work with. It utilises the mutable data types that are passed by reference. It checks every neighbouring cell of a starting one, takes note of what cells were visited already, and then checks their neighbours, too, and so on until it meets a non-empty cell or a cell that has been visited before. It turned out to be a very simple algorithm — but it was hard to wrap my head around it at first.
+The most interesting function, for me, is `flood_neighbouring_cells`. It implements a recursive flood fill algorithm that was very interesting to work with. It utilises the mutable data types that are passed by reference. It checks every neighbouring cell of a starting one, takes note of what cells were visited already, and then checks their neighbours, too, and so on until it meets a non-empty cell or a cell that has been visited before. It turned out to be a very simple algorithm — but it was hard to wrap my head around it at first.
 
 It was also engaging and sometimes baffling to work at a very abstract level of just.. a matrix of a field? It made debugging pretty hard. Once I was stuck at my fields not working in non-square fields for a very long time before realising I just mixed height and width in one of the calculations. Nevertheless, it was rewarding and stimulating to work at such a low (for me) level compared to the usual tasks I have at work.
 
 ### `/static/script_index.js`
 Processes user input for choosing a game mode. Default modes don't require extra handling, but the custom option requires, first of all, the functionality for syncing values on range selectors (for easy and fast input) and number fields (for accurate, specific input) that was done via some basic event listeners.
 
-Secondly, it requires validating mode input — it should be impossible to create a game with more mines than cells, and even better — there should be some adequate restraints for safe-to-mined cell proportions. I have read up on that and found out the ideal proportions are around 20% of mined cells, with 10% being the low boundary for an easy game and 30% — the high one for a hard game. At around 50% it becomes more of a guessing game and that's not ideal.
+Secondly, it requires validating mode input — it should be impossible to create a game with more mines than cells, and even better — there should be some adequate restraints for safe-to-mined cell proportions. I have read up on that and found out the ideal proportions are around 20% of mined cells, with 10% being the low boundary for an easy game and 35% — the high one for a hard game. At around 50% it becomes more of a guessing game and that's not ideal.
 
 ### `/templates`
 Includes HTML templates.
