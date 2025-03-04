@@ -14,6 +14,14 @@ class FieldService:
         height: int = 9,
         width: int = 9,
     ) -> None:
+        """Initialises the field with the requested parameters.
+
+        Args:
+            start (Cell): The cell clicked first.
+            n_mines (int, optional): Number of mines in the game. Defaults to 10.
+            height (int, optional): Height of the game field. Defaults to 9.
+            width (int, optional): Width of the game field. Defaults to 9.
+        """
         self.height = height
         self.width = width
 
@@ -24,7 +32,12 @@ class FieldService:
         self.opened: set[Cell] = {start}
         self.flagged: set[Cell] = set()
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Used for debugging field creation, prints the field.
+
+        Returns:
+            str: The string representation of the field.
+        """
         result = ""
         for row in self.field:
             for cell_value in row:
@@ -38,9 +51,25 @@ class FieldService:
         return result.strip()
 
     def calculate_flat_index(self, cell: Cell) -> int:
+        """Helper function for calculating one-dimensional (flat) index of a cell from a two-dimensional one.
+
+        Args:
+            cell (Cell): The cell (containing its two-dimensional coordinates) to calculate the flat index for.
+
+        Returns:
+            int: The flat (one-dimensional) index of the cell.
+        """
         return cell.row * self.width + cell.column
 
     def get_cell_neighbours(self, cell: Cell) -> Generator[Cell, None, None]:
+        """Helper function for finding valid neighbours of a cell.
+
+        Args:
+            cell (Cell): The cell to find the neighbours for.
+
+        Yields:
+            Generator[Cell, None, None]: The valid neighbours of the cell.
+        """
         for change in DIRECTIONS:
             neighbour_cell = cell.add(change)
             if (
@@ -53,6 +82,16 @@ class FieldService:
             yield neighbour_cell
 
     def create_field(self, start: Cell, n_mines: int) -> None:
+        """Creates the field — operates on the assumption the starting cell has no mines in or around it.
+
+        Args:
+            start (Cell): The empty starting cell.
+            n_mines (int): The number of mines to populate the field with.
+
+        Raises:
+            ValueError: In case there are too many mined cells (more than 35% of the total amount).
+            ValueError: In case there are too little mined cells (less than 10% of the total amount).
+        """
         field_size = self.height * self.width
         if n_mines > field_size * 0.35:
             raise ValueError("There should be at most 35% mined cells. Try to go for 20%, it's ideal.")
@@ -81,6 +120,14 @@ class FieldService:
         self.field = [flat_field[row * self.width : (row + 1) * self.width] for row in range(self.height)]  # noqa: E203
 
     def calculate_forbidden_mine_positions(self, start: Cell) -> list[int]:
+        """Calculates the positions that can't be mined (those all around the starting cell).
+
+        Args:
+            start (Cell): The starting cell.
+
+        Returns:
+            list[int]: The positions (flat-indexed) that can't contain mines.
+        """
         forbidden_mine_positions = [self.calculate_flat_index(start)]
 
         for neighbour in self.get_cell_neighbours(cell=start):
@@ -89,6 +136,14 @@ class FieldService:
         return forbidden_mine_positions
 
     def check_cell(self, cell: Cell) -> GameResponse:
+        """Check a cell — find out what value it has and how that affects the game as a whole.
+
+        Args:
+            cell (Cell): The cell to check.
+
+        Returns:
+            GameResponse: The result of a check.
+        """
         cell_value = self.field[cell.row][cell.column]
 
         if cell_value == 9:
@@ -110,6 +165,15 @@ class FieldService:
         return response.model_dump()
 
     def check_neighbouring_cells(self, cell: Cell) -> GameResponse | None:
+        """Check neighbours of a cell. A cell can't be checked if there's less flagged
+        neighbours compared to the actual cell value.
+
+        Args:
+            cell (Cell): The cell whose neighbours to check.
+
+        Returns:
+            GameResponse | None: The result of a check or no result if a cell couldn't be checked.
+        """
         cell_value = self.field[cell.row][cell.column]
         flagged_neighbours = 0
         neighbouring_cells = []
@@ -147,6 +211,23 @@ class FieldService:
         visited: set[Cell] | None = None,
         collected: CellCollection | None = None,
     ) -> CellCollection | None:
+        """Performs a recursive flood fill check of the cells, starting from one of them.
+        The starting cell is always empty. Stops when finding a non-empty border.
+
+        Args:
+            cell (Cell): The cell to check. On the first run, always empty.
+            visited (set[Cell] | None, optional):
+                The cells already visited, that shouldn't be checked again.
+                Defaults to None on the first run.
+            collected (CellCollection | None, optional):
+                The cells collected, with their corresponding valued.
+                Defaults to None on the first run.
+
+        Returns:
+            CellCollection | None:
+                The resulting cell collection, if all cells have been visited.
+                None, if there are still potentially cells to check.
+        """
         if visited is None:
             visited = set()
         if collected is None:
@@ -170,12 +251,23 @@ class FieldService:
         return collected
 
     def flag_cell(self, cell: Cell, remove_flag: bool = False) -> None:
+        """Flag or unflag a single cell.
+
+        Args:
+            cell (Cell): The cell to flag
+            remove_flag (bool, optional): Whether to remove the flag or not. Defaults to False.
+        """
         if remove_flag:
             self.flagged.discard(cell)
         else:
             self.flagged.add(cell)
 
     def check_win(self) -> bool:
+        """Check if all conditions for winning have been met already.
+
+        Returns:
+            bool: Whether all conditions have been met.
+        """
         if len(self.mines) + len(self.opened) == self.width * self.height and self.mines.isdisjoint(self.opened):
             return True
         return False
