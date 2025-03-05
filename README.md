@@ -62,5 +62,3 @@ Includes HTML templates.
 
 ### `main.py`
 Puts everything together :)
-
-[Video overview](https://youtu.be/YRXLj5Yc27M)
