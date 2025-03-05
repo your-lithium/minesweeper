@@ -24,10 +24,12 @@ class FieldService:
         """
         self.height = height
         self.width = width
+        field_size = self.check_field_size(n_mines=n_mines)
 
         self.mines: set[Cell] = set()
         self.field: list[list[int]] = []
-        self.create_field(start, n_mines)
+        mine_positions = self.distribute_mines(start=start, n_mines=n_mines, field_size=field_size)
+        self.create_field(field_size=field_size, mine_positions=mine_positions)
 
         self.opened: set[Cell] = {start}
         self.flagged: set[Cell] = set()
@@ -80,129 +82,71 @@ class FieldService:
             ):
                 yield neighbour_cell
 
-    def create_field(self, start: Cell, n_mines: int) -> None:
-        """Creates the field — operates on the assumption the starting cell has no mines in or around it.
+    def check_field_size(self, n_mines: int) -> int:
+        """Checks if the requested number of mines is suitable for the requested field size.
 
         Args:
-            start (Cell): The empty starting cell.
             n_mines (int): The number of mines to populate the field with.
 
         Raises:
             ValueError: In case there are too many mined cells (more than 35% of the total amount).
             ValueError: In case there are too little mined cells (less than 10% of the total amount).
+
+        Returns:
+            int: The resulting field size, if valid.
         """
         field_size = self.height * self.width
         if n_mines > field_size * 0.35:
             raise ValueError("There should be at most 35% mined cells. Try to go for 20%, it's ideal.")
         elif n_mines < field_size * 0.1:
             raise ValueError("There should be at least 10% mined cells. Try to go for 20%, it's ideal.")
+        return field_size
 
-        forbidden_mine_positions = self.calculate_forbidden_mine_positions(start)
+    def distribute_mines(self, start: Cell, n_mines: int, field_size: int) -> list[int]:
+        """Calculates the positions that can't be mined (the starting cell and those all around it),
+        then pseudo-randomly distributes mines over the field.
+
+        Args:
+            start (Cell): The empty starting cell.
+            n_mines (int): The number of mines to populate the field with.
+            field_size (int): The field size.
+
+        Returns:
+            list[int]: The flat indices of mine positions.
+        """
+        forbidden_mine_positions = [self.calculate_flat_index(start)]
+        for neighbour in self.get_cell_neighbours(cell=start):
+            forbidden_mine_positions.append(self.calculate_flat_index(cell=neighbour))
+
         potential_mine_positions = list(set(range(field_size)) - set(forbidden_mine_positions))
-        mine_positions = random.sample(potential_mine_positions, k=n_mines)
+        return random.sample(potential_mine_positions, k=n_mines)
 
+    def create_field(self, field_size: int, mine_positions: list[int]) -> None:
+        """Populates the two-dimensional field with mines from the flat mine position list
+        and values for the surrounding cells.
+
+        Args:
+            field_size (int): The field size.
+            mine_positions (list[int]): The flat indices of mine positions.
+        """
         flat_field = [9 if i in mine_positions else 0 for i in range(field_size)]
+
         for i, cell_value in enumerate(flat_field):
             row = i // self.width
             column = i % self.width
+            cell = Cell(row=row, column=column)
+
             if cell_value == 9:
-                self.mines.add(Cell(row=row, column=column))
+                self.mines.add(cell)
                 continue
 
             neighbour_mine_count = 0
-            cell = Cell(row=row, column=column)
             for neighbour in self.get_cell_neighbours(cell=cell):
                 if flat_field[self.calculate_flat_index(neighbour)] == 9:
                     neighbour_mine_count += 1
             flat_field[i] = neighbour_mine_count
 
         self.field = [flat_field[row * self.width : (row + 1) * self.width] for row in range(self.height)]  # noqa: E203
-
-    def calculate_forbidden_mine_positions(self, start: Cell) -> list[int]:
-        """Calculates the positions that can't be mined (those all around the starting cell).
-
-        Args:
-            start (Cell): The starting cell.
-
-        Returns:
-            list[int]: The positions (flat-indexed) that can't contain mines.
-        """
-        forbidden_mine_positions = [self.calculate_flat_index(start)]
-
-        for neighbour in self.get_cell_neighbours(cell=start):
-            forbidden_mine_positions.append(self.calculate_flat_index(cell=neighbour))
-
-        return forbidden_mine_positions
-
-    def check_cell(self, cell: Cell) -> GameResponse:
-        """Check a cell — find out what value it has and how that affects the game as a whole.
-
-        Args:
-            cell (Cell): The cell to check.
-
-        Returns:
-            GameResponse: The result of a check.
-        """
-        cell_value = self.field[cell.row][cell.column]
-
-        if cell_value == 9:
-            response = GameResponse(status="game_over", cells={"oops": [cell], "mine": list(self.mines)})
-        elif cell_value > 0:
-            self.opened.add(cell)
-            response = GameResponse(
-                status="okay",
-                cells={
-                    f"open{cell_value}": [cell],
-                },
-            )
-        else:
-            opened_area = self.flood_neighbouring_cells(cell)
-            if opened_area:
-                self.opened.update(opened_area.cells)
-                response = GameResponse(status="okay", cells=opened_area)
-
-        return response.model_dump()
-
-    def check_neighbouring_cells(self, cell: Cell) -> GameResponse | None:
-        """Check neighbours of a cell. A cell can't be checked if there's less flagged
-        neighbours compared to the actual cell value.
-
-        Args:
-            cell (Cell): The cell whose neighbours to check.
-
-        Returns:
-            GameResponse | None: The result of a check or no result if a cell couldn't be checked.
-        """
-        cell_value = self.field[cell.row][cell.column]
-        flagged_neighbours = 0
-        neighbouring_cells = []
-        failed_neighbour_check = None
-
-        for neighbour in self.get_cell_neighbours(cell=cell):
-            if neighbour in self.flagged:
-                flagged_neighbours += 1
-                continue
-
-            neighbour_check = self.check_cell(cell=neighbour)
-            if neighbour_check["status"] == "game_over" and not failed_neighbour_check:
-                failed_neighbour_check = neighbour_check
-            neighbouring_cells.append(neighbour_check["cells"])
-
-        if flagged_neighbours < cell_value:
-            return None
-        elif failed_neighbour_check:
-            return failed_neighbour_check
-
-        merged_opened_cells: CellCollection | dict[str, list[Cell]] = {}
-        for d in neighbouring_cells:
-            for key, value in d.items():
-                if key in merged_opened_cells:
-                    merged_opened_cells[key] += value
-                else:
-                    merged_opened_cells[key] = value
-
-        result = GameResponse(status="okay", cells=merged_opened_cells)
-        return result.model_dump()
 
     def flood_neighbouring_cells(
         self,
@@ -240,6 +184,102 @@ class FieldService:
             self.flood_neighbouring_cells(cell=neighbour, collected=collected)
 
         return collected
+
+    def check_cell(self, cell: Cell) -> GameResponse:
+        """Check a cell — find out what value it has and how that affects the game as a whole.
+
+        Args:
+            cell (Cell): The cell to check.
+
+        Returns:
+            GameResponse: The result of a check.
+        """
+        cell_value = self.field[cell.row][cell.column]
+
+        if cell_value == 9:
+            response = GameResponse(status="game_over", cells={"oops": [cell], "mine": list(self.mines)})
+        elif cell_value > 0:
+            self.opened.add(cell)
+            response = GameResponse(
+                status="okay",
+                cells={
+                    f"open{cell_value}": [cell],
+                },
+            )
+        else:
+            opened_area = self.flood_neighbouring_cells(cell)
+            if opened_area:
+                self.opened.update(opened_area.cells)
+                response = GameResponse(status="okay", cells=opened_area)
+
+        return response.model_dump()
+
+    def collect_neighbouring_cells(self, cell: Cell) -> tuple[int, list[GameResponse], GameResponse | None]:
+        """Collects the neighbouring cell check results.
+
+        Args:
+            cell (Cell): The cell whose neighbours to check.
+
+        Returns:
+            tuple[int, list[GameResponse], GameResponse | None]:
+                The number of neighbours that are flagged,
+                the list of neighbour check GameResponses,
+                and the first neighbour that was mined and unflagged, if any.
+        """
+        n_flagged_neighbours = 0
+        neighbouring_cells = []
+        failed_neighbour_check = None
+
+        for neighbour in self.get_cell_neighbours(cell=cell):
+            if neighbour in self.flagged:
+                n_flagged_neighbours += 1
+                continue
+
+            neighbour_check = self.check_cell(cell=neighbour)
+            if neighbour_check["status"] == "game_over" and not failed_neighbour_check:
+                failed_neighbour_check = neighbour_check
+            neighbouring_cells.append(neighbour_check["cells"])
+
+        return n_flagged_neighbours, neighbouring_cells, failed_neighbour_check
+
+    @staticmethod
+    def merge_opened_neighbouring_cells(neighbouring_cells: list[GameResponse]) -> GameResponse:
+        """Merges the GameResponses into a single one. Currently used only as a helper for check_neighbouring_cells.
+
+        Args:
+            neighbouring_cells (list[GameResponse]): The GameResponses to merge.
+
+        Returns:
+            GameResponse: The single merged GameResponse.
+        """
+        merged_opened_cells = CellCollection()
+
+        for d in neighbouring_cells:
+            for key, value in d.items():
+                merged_opened_cells[key] += value
+
+        return GameResponse(status="okay", cells=merged_opened_cells)
+
+    def check_neighbouring_cells(self, cell: Cell) -> GameResponse | None:
+        """Check neighbours of a cell. A cell can't be checked if there's less flagged
+        neighbours compared to the actual cell value.
+
+        Args:
+            cell (Cell): The cell whose neighbours to check.
+
+        Returns:
+            GameResponse | None: The result of a check or no result if a cell couldn't be checked.
+        """
+        cell_value = self.field[cell.row][cell.column]
+        n_flagged_neighbours, neighbouring_cells, failed_neighbour_check = self.collect_neighbouring_cells(cell=cell)
+
+        if n_flagged_neighbours < cell_value:
+            return None
+        elif failed_neighbour_check:
+            return failed_neighbour_check
+
+        merged_opened_cells = self.merge_opened_neighbouring_cells(neighbouring_cells=neighbouring_cells)
+        return merged_opened_cells.model_dump()
 
     def flag_cell(self, cell: Cell, remove_flag: bool = False) -> None:
         """Flag or unflag a single cell.
