@@ -1,4 +1,4 @@
-from typing import Sequence
+from typing import ItemsView, Sequence
 
 from pydantic import BaseModel, ConfigDict, RootModel
 
@@ -26,6 +26,10 @@ class CellCollection(RootModel):
     def cells(self) -> list[Cell]:
         return [cell for cell_type in self.root.values() for cell in cell_type]
 
+    @property
+    def items(self) -> ItemsView[str, list[Cell]]:
+        return self.root.items()
+
     def __getitem__(self, key: str) -> list[Cell]:
         if key not in self.root:
             self.root[key] = []
@@ -37,4 +41,4 @@ class CellCollection(RootModel):
 
 class GameResponse(BaseModel):
     status: str
-    cells: CellCollection
+    cells: CellCollection | None = None

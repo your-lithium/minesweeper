@@ -185,22 +185,22 @@ class FieldService:
 
         return collected
 
-    def check_cell(self, cell: Cell) -> GameResponse:
+    def check_cell(self, cell: Cell) -> GameResponse | None:
         """Check a cell — find out what value it has and how that affects the game as a whole.
 
         Args:
             cell (Cell): The cell to check.
 
         Returns:
-            GameResponse: The result of a check.
+            GameResponse | None: The result of a check.
         """
         cell_value = self.field[cell.row][cell.column]
 
         if cell_value == 9:
-            response = GameResponse(status="game_over", cells={"oops": [cell], "mine": list(self.mines)})
+            return GameResponse(status="game_over", cells={"oops": [cell], "mine": list(self.mines)})
         elif cell_value > 0:
             self.opened.add(cell)
-            response = GameResponse(
+            return GameResponse(
                 status="okay",
                 cells={
                     f"open{cell_value}": [cell],
@@ -210,24 +210,24 @@ class FieldService:
             opened_area = self.flood_neighbouring_cells(cell)
             if opened_area:
                 self.opened.update(opened_area.cells)
-                response = GameResponse(status="okay", cells=opened_area)
+                return GameResponse(status="okay", cells=opened_area)
 
-        return response.model_dump()
+        return None
 
-    def collect_neighbouring_cells(self, cell: Cell) -> tuple[int, list[GameResponse], GameResponse | None]:
+    def collect_neighbouring_cells(self, cell: Cell) -> tuple[int, list[CellCollection], GameResponse | None]:
         """Collects the neighbouring cell check results.
 
         Args:
             cell (Cell): The cell whose neighbours to check.
 
         Returns:
-            tuple[int, list[GameResponse], GameResponse | None]:
+            tuple[int, list[CellCollection], GameResponse | None]:
                 The number of neighbours that are flagged,
-                the list of neighbour check GameResponses,
+                the list of neighbour check cells,
                 and the first neighbour that was mined and unflagged, if any.
         """
         n_flagged_neighbours = 0
-        neighbouring_cells = []
+        neighbour_checks = []
         failed_neighbour_check = None
 
         for neighbour in self.get_cell_neighbours(cell=cell):
@@ -236,14 +236,17 @@ class FieldService:
                 continue
 
             neighbour_check = self.check_cell(cell=neighbour)
-            if neighbour_check["status"] == "game_over" and not failed_neighbour_check:
-                failed_neighbour_check = neighbour_check
-            neighbouring_cells.append(neighbour_check["cells"])
+            if neighbour_check:
+                if neighbour_check.status == "game_over" and not failed_neighbour_check:
+                    failed_neighbour_check = neighbour_check
+                cells = neighbour_check.cells
+                if cells:
+                    neighbour_checks.append(cells)
 
-        return n_flagged_neighbours, neighbouring_cells, failed_neighbour_check
+        return n_flagged_neighbours, neighbour_checks, failed_neighbour_check
 
     @staticmethod
-    def merge_opened_neighbouring_cells(neighbouring_cells: list[GameResponse]) -> GameResponse:
+    def merge_opened_neighbouring_cells(neighbour_checks: list[CellCollection]) -> GameResponse:
         """Merges the GameResponses into a single one. Currently used only as a helper for check_neighbouring_cells.
 
         Args:
@@ -254,8 +257,8 @@ class FieldService:
         """
         merged_opened_cells = CellCollection()
 
-        for d in neighbouring_cells:
-            for key, value in d.items():
+        for neighbour_check in neighbour_checks:
+            for key, value in neighbour_check.items:
                 merged_opened_cells[key] += value
 
         return GameResponse(status="okay", cells=merged_opened_cells)
@@ -271,15 +274,14 @@ class FieldService:
             GameResponse | None: The result of a check or no result if a cell couldn't be checked.
         """
         cell_value = self.field[cell.row][cell.column]
-        n_flagged_neighbours, neighbouring_cells, failed_neighbour_check = self.collect_neighbouring_cells(cell=cell)
+        n_flagged_neighbours, neighbour_checks, failed_neighbour_check = self.collect_neighbouring_cells(cell=cell)
 
         if n_flagged_neighbours < cell_value:
             return None
         elif failed_neighbour_check:
             return failed_neighbour_check
 
-        merged_opened_cells = self.merge_opened_neighbouring_cells(neighbouring_cells=neighbouring_cells)
-        return merged_opened_cells.model_dump()
+        return self.merge_opened_neighbouring_cells(neighbour_checks=neighbour_checks)
 
     def flag_cell(self, cell: Cell, remove_flag: bool = False) -> None:
         """Flag or unflag a single cell.
