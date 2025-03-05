@@ -231,7 +231,9 @@ class FieldService:
         failed_neighbour_check = None
 
         for neighbour in self.get_cell_neighbours(cell=cell):
-            if neighbour in self.flagged:
+            if neighbour in self.opened:
+                continue
+            elif neighbour in self.flagged:
                 n_flagged_neighbours += 1
                 continue
 
